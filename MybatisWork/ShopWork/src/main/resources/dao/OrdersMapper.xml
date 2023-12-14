@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.OrdersMapper">
+<!--    根据订单价格查询-->
+    <select id="getOrderListByPrice" resultMap="OrderAndGood">
+        select o.id, o.order_time ot,o.price op,g.goodId gid,g.name gn,g.price gp,goods_orders.num gnum
+        from goods g,orders o, goods_orders
+        where g.goodId = goods_orders.gid and o.id = goods_orders.oid
+        order by o.price desc
+    </select>
+<!--    根据下单时间查询-->
+    <select id="getOrderListByOrderTime" resultMap="OrderAndGood">
+        select o.id, o.order_time ot,o.price op,g.goodId gid,g.name gn,g.price gp,goods_orders.num gnum
+        from goods g,orders o, goods_orders
+        where g.goodId = goods_orders.gid and o.id = goods_orders.oid
+        order by o.order_time desc
+    </select>
+<!--    查询订单列表-->
+    <select id="getOrderList" resultMap="OrderAndGood">
+        select o.id, o.order_time ot,o.price op,g.goodId gid,g.name gn,g.price gp,goods_orders.num gnum
+        from goods g,orders o, goods_orders
+        where g.goodId = goods_orders.gid and o.id = goods_orders.oid
+    </select>
+<!--    获得订单通过id-->
+    <select id="getOrder" resultMap="OrderAndGood">
+    select o.id, o.order_time ot,o.price op,g.goodId gid,g.name gn,g.price gp,goods_orders.num gnum
+    from goods g,orders o, goods_orders
+    where g.goodId = goods_orders.gid and o.id = goods_orders.oid and  goods_orders.oid = #{id}
+    </select>
+        <resultMap id="OrderAndGood" type="orders">
+            <result property="id" column="id"/>
+            <result property="orderTime" column="ot"/>
+         <result property="price" column="op"/>
+             <collection property="goods" ofType="goods">
+                <result property="goodId" column="gid"/>
+                <result property="name" column="gn"/>
+                <result property="price" column="gp"/>
+                 <result property="num" column="gnum"/>
+            </collection>
+        </resultMap>
+<!--    添加订单-->
+    <insert id="saveOrder" parameterType="orders">
+        insert into orders (id,order_time) value(#{id},#{orderTime})
+    </insert>
+<!--    删除订单-->
+    <delete id="removeOrderById" parameterType="int">
+        delete from orders  where id =#{id}
+    </delete>
+<!--    删除中间表的订单-->
+    <delete id="removeIdInMidTable" parameterType="int">
+        delete from goods_orders where oid =#{id}
+    </delete>
+<!--    根据id删除订单中的商品-->
+    <delete id="removeGoodInOrderById" parameterType="int">
+        delete from goods_orders where oid =#{oid} and gid=#{gid}
+    </delete>
+<!--    更新订单价格-->
+    <update id="updateOrderPrice" parameterType="int">
+        update orders set price =(select SUM(goods_orders.num * goods.Price) from goods,goods_orders where goods_orders.gid=goods.goodId and goods_orders.oid = orders.id) where id = #{id}
+    </update>
+<!--    更新订单-->
+    <update id="updateOrder" parameterType="int">
+        update goods_orders set num = #{num} where gid=#{gid} and oid=#{oid}
+    </update>
+<!--    获得中间表对象-->
+    <select id="getOidGid" parameterType="int" resultType="goodsOrders">
+        select * from goods_orders where gid=#{gid} and oid =#{oid}
+    </select>
+</mapper>

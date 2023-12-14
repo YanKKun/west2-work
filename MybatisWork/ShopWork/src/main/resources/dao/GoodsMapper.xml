@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.GoodsMapper">
+<!--    通过id查询商品-->
+    <select id="getGoodById" resultType="goods">
+        select goodId,name,price  from goods where goodId =#{id} and exist=1
+    </select>
+    <!--    通过id返回商品对象-->
+    <select id="getGoodObject" resultType="goods">
+        select goodId,name,price,exist  from goods where goodId =#{goodId}
+    </select>
+<!--    根据价格排序查询商品-->
+    <select id="listGoodsByPrice" resultType="goods">
+        select goodId,name,price from goods
+        where exist = 1
+        order by price desc
+    </select>
+<!--    分页查询商品-->
+    <select id="listGoodsByLimit" parameterType="int" resultType="goods">
+        select goodId,name,price from goods where exist=1
+        limit #{beginStep},#{pageSize}
+    </select>
+<!--    获得商品列表-->
+    <select id="listGoods" resultType="goods">
+        select goodId,name,price from goods where exist=1
+    </select>
+<!--    判断商品是否存在-->
+    <select id="judgeGoodExistById" parameterType="int" resultType="int">
+        select goodId,name,price from goods where goodId=#{goodId} and exist=-1
+    </select>
+<!--    添加商品-->
+    <insert id="saveGood" parameterType="goods">
+        insert into shopWork.goods (goodId,name,price) values(#{goodId},#{name},#{price})
+    </insert>
+<!--    更新商品-->
+    <update id="updateGood" parameterType="map">
+        update shopWork.goods
+        <set>
+        <if test="name!=null">
+            name = #{name},
+        </if>
+        <if test="price!=null">
+             price = #{price},
+        </if>
+        </set>
+        where goodId =#{goodId}
+    </update>
+<!--    通过id删除商品-->
+    <update id="removeGoodsById" parameterType="int">
+        update goods set exist = -1 where goodId = #{goodId}
+    </update>
+<!--    删除中间表的商品-->
+    <delete id="removeGoodInOrder" parameterType="int">
+        delete from goods_orders where gid=#{goodId}
+    </delete>
+<!--    模糊查询商品-->
+    <select id="listGoodsByLike" parameterType="map" resultType="goods">
+        select goodId,name,price from shopWork.goods
+        <where>
+            <if test="name!=null">
+                name like "%"#{name}"%"
+            </if>
+            <if test="price!=null">
+                and price like #{price}
+            </if>
+            and exist = 1
+        </where>
+    </select>
+
+</mapper>
